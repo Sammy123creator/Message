@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iPhone-Style Messaging App</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      background-color: #f0f0f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+    }
+    #messageBox {
+      width: 100%;
+      max-width: 900px;
+      height: 80vh;
+      background-color: white;
+      border-radius: 20px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: row;
+    }
+    #contacts {
+      width: 30%;
+      padding: 20px;
+      border-right: 1px solid #e0e0e0;
+      background-color: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    #contacts div {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 20px;
+      background-color: #007aff;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+    }
+    #messages {
+      width: 70%;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .message {
+      max-width: 75%;
+      padding: 10px;
+      border-radius: 20px;
+      background-color: #007aff;
+      color: white;
+      word-wrap: break-word;
+      margin-bottom: 10px;
+      position: relative;
+      align-self: flex-start;
+    }
+    .message.sent {
+      background-color: #34c759;
+      align-self: flex-end;
+    }
+    .inputContainer {
+      display: flex;
+      padding: 10px;
+      background-color: #f7f7f7;
+      border-top: 1px solid #e0e0e0;
+      border-radius: 20px;
+      margin-top: auto;
+    }
+    #inputField {
+      flex-grow: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 20px;
+      background-color: #e0e0e0;
+      font-size: 16px;
+      color: #333;
+    }
+    #addFriendInput {
+      flex-grow: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 20px;
+      background-color: #e0e0e0;
+      font-size: 16px;
+      color: #333;
+    }
+    #addContactBtn {
+      padding: 10px 20px;
+      background-color: #007aff;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    #addContactInputBox {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="messageBox">
+    <div id="contacts">
+      <button id="addContactBtn" onclick="showAddContactBox()">Add Contact</button>
+      <div id="addContactInputBox">
+        <input type="text" id="addFriendInput" placeholder="Add friend's email/phone" onkeydown="addFriend(event)">
+      </div>
+      <div id="contactList"></div>
+    </div>
+
+    <div id="messages">
+      <div id="messageArea">
+        <p>Select a contact to start messaging.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let contacts = [];
+    let currentChat = null;
+
+    // Show Add Contact input box
+    function showAddContactBox() {
+      document.getElementById('addContactInputBox').style.display = 'flex';
+    }
+
+    // Validate email or phone number
+    function validateInput(input) {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phonePattern = /^[0-9]{10}$/;
+      return emailPattern.test(input) || phonePattern.test(input);
+    }
+
+    // Add a new friend by email/phone
+    function addFriend(event) {
+      if (event.key === 'Enter') {
+        const addFriendInput = document.getElementById('addFriendInput');
+        const friend = addFriendInput.value.trim();
+        if (friend && validateInput(friend)) {
+          contacts.push(friend);
+          updateContactList();
+          addFriendInput.value = '';
+          document.getElementById('addContactInputBox').style.display = 'none';
+        } else {
+          alert("Please enter a valid email or phone number.");
+        }
+      }
+    }
+
+    // Update the list of contacts
+    function updateContactList() {
+      const contactList = document.getElementById('contactList');
+      contactList.innerHTML = '';
+      contacts.forEach((contact, index) => {
+        const contactDiv = document.createElement('div');
+        contactDiv.textContent = contact;
+        contactDiv.onclick = function() {
+          openChat(contact);
+        };
+        contactList.appendChild(contactDiv);
+      });
+    }
+
+    // Open chat with a specific contact
+    function openChat(contact) {
+      currentChat = contact;
+      const messagesDiv = document.getElementById('messages');
+      const messageArea = document.getElementById('messageArea');
+      messageArea.innerHTML = `<h3>Chat with ${contact}</h3><div id="chatMessages"></div><div class="inputContainer">
+        <input type="text" id="inputField" placeholder="Type a message..." onkeydown="sendMessage(event)">
+      </div>`;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom of messages
+    }
+
+    // Send a message when Enter is pressed
+    function sendMessage(event) {
+      if (event.key === 'Enter' && currentChat) {
+        const inputField = document.getElementById('inputField');
+        const messageText = inputField.value;
+        if (messageText.trim()) {
+          const chatMessages = document.getElementById('chatMessages');
+          const newMessage = document.createElement('div');
+          newMessage.classList.add('message', 'sent');
+          newMessage.textContent = `You: ${messageText}`;
+          chatMessages.appendChild(newMessage);
+          inputField.value = '';
+          chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to bottom
+        }
+      }
+    }
+  </script>
+</body>
+</html>
